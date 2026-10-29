@@ -81,6 +81,48 @@ bun run start
 
 页面内置 4 个官方示例（alien 3.4 JSON / spineboy 3.6 JSON / spineboy 3.8 二进制 / celestial-circus 4.2 含物理约束），可一键载入体验。
 
+## Docker 部署
+
+镜像发布于 [GitHub Container Registry](https://github.com/firekula/spine-convert/pkgs/container/spine-convert)，支持 `linux/amd64` 与 `linux/arm64` 双架构；每个 [Release](https://github.com/firekula/spine-convert/releases) 另附离线镜像 tar.gz。
+
+### 拉取运行
+
+```bash
+docker run -d --name spine-convert \
+  -p 3000:3000 \
+  -v spine-convert-data:/app/data \
+  ghcr.io/firekula/spine-convert:latest
+```
+
+启动后访问 `http://localhost:3000`。升级镜像不会丢失数据（SQLite 持久化于 `spine-convert-data` 卷）。
+
+### Docker Compose
+
+```bash
+curl -O https://raw.githubusercontent.com/firekula/spine-convert/main/docker-compose.yml
+docker compose up -d
+```
+
+### 离线导入（从 Release 附件）
+
+```bash
+docker load -i spine-convert_1.2.0_docker_amd64.tar.gz
+docker run -d -p 3000:3000 -v spine-convert-data:/app/data ghcr.io/firekula/spine-convert:1.2.0
+```
+
+### 自行构建
+
+```bash
+docker build -t spine-convert .
+docker run -d -p 3000:3000 -v spine-convert-data:/app/data spine-convert
+```
+
+**说明**
+
+- 容器以非 root（uid 1001）运行；绑定宿主机目录时需先 `mkdir -p ./data && chown -R 1001:1001 ./data`
+- 转换全部在浏览器本地完成，容器无对外网络请求，历史记录数据库仅作脚手架预留
+- 镜像标签策略：`latest`（main 最新）、`main-<sha>`（指定提交）、`1.2.0` / `1.2`（Release 版本）
+
 ## 运行测试
 
 三套回归测试共 **319 项**，全部基于官方示例资产：

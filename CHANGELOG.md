@@ -4,6 +4,24 @@
 
 格式约定参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.2.0] - 2026-10-29
+
+### 新增
+
+- **Docker 容器化部署**：
+  - `Dockerfile` 多阶段构建（oven/bun 基础镜像）：构建阶段安装依赖 + 生成 Prisma Client + 产出 standalone 产物；运行阶段仅携带约 80MB 运行时内容，非 root（uid 1001）运行，内置健康检查
+  - 首次启动自动建库：构建期 `prisma migrate diff` 生成建表 SQL，运行时由 bun 内置 SQLite 执行，镜像无需携带 Prisma CLI 与查询引擎；二次启动自动跳过
+  - `.dockerignore` 排除本地数据、密钥与运行无关目录；`docker-compose.yml` 一键部署示例
+- **GitHub Actions Docker 流水线**（`.github/workflows/docker.yml`）：
+  - 推送 main → 自动构建 `linux/amd64` + `linux/arm64` 双架构镜像（arm64 原生 runner，不依赖 QEMU）并推送 GHCR，标签 `latest` + `main-<sha>`
+  - 推送 `v*` 标签 → 构建版本号镜像（`1.2.0` / `1.2` + `latest`）并自动创建 GitHub Release，附带双架构离线镜像 tar.gz（`docker load` 可直接导入）
+- README 新增"Docker 部署"章节
+
+### 变更
+
+- `package.json`：版本号 1.1.1 → 1.2.0
+- tsconfig / ESLint 排除 `docker/` 目录（容器辅助脚本由 bun 直接执行，不参与 Web 应用类型检查）
+
 ## [1.1.1] - 2026-10-29
 
 ### 新增

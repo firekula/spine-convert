@@ -8,6 +8,7 @@
 
 ### 文档
 
+- README"Docker 部署"章节重写为三种方式并列：docker run（补 `--restart` 策略与升级流程）、Docker Compose（补完整 compose 配置与启停/升级/日志命令）、Podman（`podman run` 等价命令、`podman compose` 使用、rootless 绑定目录需 `podman unshare chown` 的权限说明、quadlet 开机自启配置）；离线导入一节注明 `podman load` 同样支持
 - 新增贡献指南 `CONTRIBUTING.md`：环境搭建、测试硬性要求（319 项回归 + lint + build + tsc）、Conventional Commits 提交规范、格式逻辑改动的官方源码证据要求、版权边界与发布流程
 - README 新增"参与贡献"章节，链接贡献指南
 

@@ -83,30 +83,114 @@ bun run start
 
 ## Docker 部署
 
-镜像发布于 [GitHub Container Registry](https://github.com/firekula/spine-convert/pkgs/container/spine-convert)，支持 `linux/amd64` 与 `linux/arm64` 双架构；每个 [Release](https://github.com/firekula/spine-convert/releases) 另附离线镜像 tar.gz。
+镜像发布于 [GitHub Container Registry](https://github.com/firekula/spine-convert/pkgs/container/spine-convert)，支持 `linux/amd64` 与 `linux/arm64` 双架构；每个 [Release](https://github.com/firekula/spine-convert/releases) 另附离线镜像 tar.gz。以下三种方式任选其一。
 
-### 拉取运行
+### 方式一：docker run 直接创建容器
 
 ```bash
-docker run -d --name spine-convert \
+docker run -d \
+  --name spine-convert \
+  --restart unless-stopped \
   -p 3000:3000 \
   -v spine-convert-data:/app/data \
   ghcr.io/firekula/spine-convert:latest
 ```
 
-启动后访问 `http://localhost:3000`。升级镜像不会丢失数据（SQLite 持久化于 `spine-convert-data` 卷）。
+启动后访问 `http://localhost:3000`。数据持久化在命名卷 `spine-convert-data` 中，升级、重建容器均不会丢失。
 
-### Docker Compose
+常用操作：
 
 ```bash
-curl -O https://raw.githubusercontent.com/firekula/spine-convert/main/docker-compose.yml
-docker compose up -d
+docker logs -f spine-convert                          # 跟踪日志
+docker pull ghcr.io/firekula/spine-convert:latest     # 升级：拉取新镜像
+docker stop spine-convert && docker rm spine-convert  # 升级：移除旧容器
+# 然后重新执行上面的 docker run 即可，数据仍在命名卷中
 ```
+
+### 方式二：Docker Compose
+
+仓库根目录已提供 [docker-compose.yml](docker-compose.yml)，核心内容如下，可直接复制保存：
+
+```yaml
+services:
+  spine-convert:
+    image: ghcr.io/firekula/spine-convert:latest   # 生产环境建议固定版本，如 :1.2.0
+    container_name: spine-convert
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - spine-convert-data:/app/data   # SQLite 持久化；绑定宿主机目录见下方说明
+
+volumes:
+  spine-convert-data:
+```
+
+```bash
+# 下载官方 compose 文件（或复制上面内容保存为 docker-compose.yml）
+curl -O https://raw.githubusercontent.com/firekula/spine-convert/main/docker-compose.yml
+
+docker compose up -d                            # 启动
+docker compose logs -f                          # 跟踪日志
+docker compose pull && docker compose up -d     # 升级（数据保留）
+docker compose down                             # 停止并移除容器（命名卷保留）
+```
+
+改用本地源码构建镜像：把 `image:` 一行换成 `build: .`，执行 `docker compose up -d --build`。
+
+### 方式三：Podman
+
+镜像存于 GHCR（OCI 标准格式），Podman 无需任何适配即可拉取，命令与 docker 基本一致：
+
+```bash
+podman run -d \
+  --name spine-convert \
+  --restart unless-stopped \
+  -p 3000:3000 \
+  -v spine-convert-data:/app/data \
+  ghcr.io/firekula/spine-convert:latest
+```
+
+Compose 用户：仓库的 `docker-compose.yml` 原样可用，执行 `podman compose up -d`（Podman ≥ 4.7 内置转发，需已安装 `podman-compose` 或 `docker-compose`）。
+
+Rootless 模式（无 sudo 运行 podman）注意事项：
+
+- 端口 3000 为非特权端口，rootless 可直接绑定，无需额外配置
+- 数据持久化推荐**命名卷**（如上例）：空卷首次挂载时按镜像内目录属主（uid 1000）自动初始化，无需手工处理权限
+- 改用**绑定宿主机目录**（`-v ./data:/app/data`）时，容器内 uid 1000 映射的是宿主机 subuid 而非宿主 uid，直接 `chown 1000:1000` 无效，需在用户命名空间内调整属主：
+
+  ```bash
+  mkdir -p ./data
+  podman unshare chown -R 1000:1000 ./data
+  ```
+
+  rootful podman 与 docker 行为一致，直接 `sudo chown -R 1000:1000 ./data` 即可
+- 开机自启推荐 quadlet（Podman ≥ 4.4）。创建 `~/.config/containers/systemd/spine-convert.container`：
+
+  ```ini
+  [Container]
+  Image=ghcr.io/firekula/spine-convert:latest
+  PublishPort=3000:3000
+  Volume=spine-convert-data:/app/data
+
+  [Service]
+  Restart=always
+
+  [Install]
+  WantedBy=default.target
+  ```
+
+  然后启用（rootless 开机自启需先执行 `loginctl enable-linger $USER`）：
+
+  ```bash
+  systemctl --user daemon-reload
+  systemctl --user start spine-convert
+  ```
 
 ### 离线导入（从 Release 附件）
 
 ```bash
-docker load -i spine-convert_1.2.0_docker_amd64.tar.gz
+docker load -i spine-convert_1.2.0_docker_amd64.tar.gz   # podman load -i 同样支持
 docker run -d -p 3000:3000 -v spine-convert-data:/app/data ghcr.io/firekula/spine-convert:1.2.0
 ```
 

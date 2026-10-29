@@ -4,6 +4,13 @@
 
 格式约定参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### 文档
+
+- 新增贡献指南 `CONTRIBUTING.md`：环境搭建、测试硬性要求（319 项回归 + lint + build + tsc）、Conventional Commits 提交规范、格式逻辑改动的官方源码证据要求、版权边界与发布流程
+- README 新增"参与贡献"章节，链接贡献指南
+
 ## [1.2.0] - 2026-10-29
 
 ### 新增

@@ -191,6 +191,10 @@ scripts/download-research.sh  # spine-ts 运行时源码
 - 官方个别导出文件存在编辑器自身写出不一致的怪癖（个别 IK 约束 mix/bend 默认值、约束曲线省略），工具按官方运行时语义归一化处理
 - 降级转换的语义损失无法避免（如物理约束在 4.1 中不存在），但每一条处理都会在转换报告中列出，不会静默丢弃
 
+## 参与贡献
+
+欢迎 issue 与 PR。开发环境搭建、测试硬性要求、提交与 PR 规范、格式逻辑改动的官方源码证据要求，见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
 ## 版权说明
 
 - 本工具代码：[MIT License](LICENSE) © 2026 firekula

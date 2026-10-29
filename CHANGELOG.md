@@ -15,6 +15,7 @@
 ### 修复
 
 - `scripts/test-convert.ts` 7 处类型错误（`Object.values/entries` 对 any 入参的重载推导为 unknown，补显式断言），CI 的 tsc 检查得以通过
+- 三个测试脚本的夹具路径硬编码 `/home/z/my-project/...` 绝对路径导致 CI runner 上文件读取失败 —— 改为基于脚本位置（`import.meta.dir`）的相对解析；`actions/checkout` 升级 v5 消除 Node 20 弃用警告
 
 ### 变更
 

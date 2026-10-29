@@ -15,7 +15,8 @@ import { ALL_VERSIONS } from '../src/lib/spine/spec';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const BASE = '/home/z/my-project/research/spine';
+/* bun 的 import.meta.dir（tsc 无此类型，断言绕过） */
+const BASE = path.resolve((import.meta as any).dir, '../research/spine');
 const pairs: { ver: SpineVersion; json: string; skel: string; label: string }[] = [
   { ver: '3.4', json: `${BASE}/tag-3.4.02/examples__alien__export__alien.json`, skel: `${BASE}/tag-3.4.02/examples__alien__export__alien.skel`, label: 'alien 3.4.02' },
   { ver: '3.6', json: `${BASE}/branch-3.6/spine-runtimes-3.6/examples/spineboy/export/spineboy-pro.json`, skel: `${BASE}/branch-3.6/spine-runtimes-3.6/examples/spineboy/export/spineboy-pro.skel`, label: 'spineboy-pro 3.6.32' },

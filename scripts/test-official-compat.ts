@@ -20,8 +20,10 @@ import { convert } from '../src/lib/spine/convert';
 import { ALL_VERSIONS, PROFILES } from '../src/lib/spine/spec';
 import type { SpineVersion, SkeletonIR } from '../src/lib/spine/types';
 import * as fs from 'fs';
+import * as path from 'path';
 
-const BASE = '/home/z/my-project/research/spine';
+/* bun 的 import.meta.dir（tsc 无此类型，断言绕过） */
+const BASE = path.resolve((import.meta as any).dir, '../research/spine');
 const G36 = `${BASE}/branch-3.6/spine-runtimes-3.6/examples/goblins/export/goblins-pro.json`;
 const SB42_SKEL = `${BASE}/branch-4.2/spine-runtimes-4.2/examples/spineboy/export/spineboy-pro.skel`;
 

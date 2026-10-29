@@ -3,6 +3,7 @@ import { readBinary } from '../src/lib/spine/binReader';
 import { writeBinary } from '../src/lib/spine/binWriter';
 import type { SpineVersion, SkeletonIR, AttachmentIR, VerticesIR } from '../src/lib/spine/types';
 import * as fs from 'fs';
+import * as path from 'path';
 
 function clone<T>(x: T): T { return JSON.parse(JSON.stringify(x)); }
 
@@ -87,7 +88,7 @@ for (const ver of ['3.6', '3.8', '4.0', '4.1', '4.2'] as SpineVersion[]) {
 /* 各官方文件 defaultSkin 附件类型清单 */
 console.log('\n===== 官方文件 defaultSkin 条目类型 =====');
 for (const [ver, rel] of [['4.0', 'branch-4.0/spine-runtimes-4.0/examples/spineboy/export/spineboy-pro.skel'], ['4.2', 'branch-4.2/spine-runtimes-4.2/examples/spineboy/export/spineboy-pro.skel'], ['4.2', 'branch-4.2/spine-runtimes-4.2/examples/tank/export/tank-pro.skel'], ['4.2', 'branch-4.2/spine-runtimes-4.2/examples/raptor/export/raptor-pro.skel']] as [SpineVersion, string][]) {
-  const buf = fs.readFileSync(`/home/z/my-project/research/spine/${rel}`);
+  const buf = fs.readFileSync(path.resolve((import.meta as any).dir, '../research/spine', rel));
   const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
   const ir = readBinary(ab, ver);
   const types = (ir.defaultSkin?.entries ?? []).map((e) => `${e.slot}:${e.name}(${e.attachment.type}${e.attachment.type === 'linkedmesh' ? '/skin=' + (e.attachment as any).skin : ''})`);

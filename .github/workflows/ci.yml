@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    name: 回归测试与构建
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # prisma generate / next build 不连库，仅提供占位连接串
+      DATABASE_URL: "file:./ci.db"
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: 安装依赖
+        run: bun install --frozen-lockfile
+
+      - name: 生成 Prisma Client
+        run: bun run db:generate
+
+      - name: 回归测试 · 官方同源互证 + round-trip + 跨版本冒烟（216 项）
+        run: bun run scripts/test-convert.ts
+
+      - name: 回归测试 · 附件类型 round-trip（52 项）
+        run: bun run scripts/test-att-types.ts
+
+      - name: 回归测试 · 官方读取器兼容性（51 项）
+        run: bun run scripts/test-official-compat.ts
+
+      - name: ESLint
+        run: bun run lint
+
+      - name: 生产构建（next build，同时生成 next-env.d.ts）
+        run: bunx next build
+
+      - name: TypeScript 类型检查
+        run: bunx tsc --noEmit

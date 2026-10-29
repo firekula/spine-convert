@@ -95,9 +95,9 @@ function stripConstraintCurves(ir: SkeletonIR): unknown {
   // 在 JSON 序列化前把约束时间轴的 curves 移除（仅用于 json≡bin 对比：官方二进制写出时会省略视觉无关的约束曲线）
   const c = JSON.parse(JSON.stringify(ir));
   for (const anim of c.animations) {
-    for (const keys of Object.values(anim.ik ?? {})) for (const k of keys) delete k.curves;
-    for (const keys of Object.values(anim.transform ?? {})) for (const k of keys) delete k.curves;
-    for (const pt of Object.values(anim.path ?? {})) {
+    for (const keys of Object.values(anim.ik ?? {}) as any[][]) for (const k of keys) delete k.curves;
+    for (const keys of Object.values(anim.transform ?? {}) as any[][]) for (const k of keys) delete k.curves;
+    for (const pt of Object.values(anim.path ?? {}) as any[]) {
       for (const keys of [pt.position, pt.spacing, pt.mix]) {
         if (Array.isArray(keys)) for (const k of keys) delete k.curves;
       }
@@ -127,9 +127,9 @@ function expandDeforms(ir: SkeletonIR): SkeletonIR {
   collect(out.defaultSkin);
   for (const s of out.skins) collect(s);
   for (const anim of out.animations) {
-    for (const [skinName, slots] of Object.entries(anim.deform)) {
-      for (const [slotName, atts] of Object.entries(slots)) {
-        for (const [attName, keys] of Object.entries(atts)) {
+    for (const [skinName, slots] of Object.entries(anim.deform) as [string, any][]) {
+      for (const [slotName, atts] of Object.entries(slots) as [string, any][]) {
+        for (const [attName, keys] of Object.entries(atts) as [string, any][]) {
           const len = attLen.get(`${skinName}\u0000${slotName}\u0000${attName}`) ?? 0;
           for (const k of keys as { vertices: number[] | null; offset: number }[]) {
             if (k.vertices == null) continue;

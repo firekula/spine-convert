@@ -1,5 +1,8 @@
 # Spine 版本转换工具
 
+[![CI](https://github.com/firekula/spine-convert/actions/workflows/ci.yml/badge.svg)](https://github.com/firekula/spine-convert/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 **Spine 骨骼动画数据文件转换器 —— JSON ↔ 二进制（.skel）互转，3.2 ~ 4.2 全版本互通。**
 
 全部转换在浏览器本地完成，文件不上传服务器，毫秒级出结果。
@@ -148,5 +151,5 @@ scripts/download-research.sh  # spine-ts 运行时源码
 
 ## 版权说明
 
-- 本工具代码：见仓库提交历史
-- Spine、spine-runtimes 及其示例资产：版权所有 © Esoteric Software，Spine Editor 许可证条款；`research/` 与 `public/samples/` 中的官方资产仅供格式研究与此工具的测试用途
+- 本工具代码：[MIT License](LICENSE) © 2026 firekula
+- Spine、spine-runtimes 及其示例资产（`research/` 与 `public/samples/` 中的官方导出文件）：版权所有 © Esoteric Software，Spine Editor 许可证条款，仅供格式研究与此工具的测试用途，不在 MIT 授权范围内

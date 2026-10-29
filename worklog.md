@@ -112,3 +112,24 @@ Stage Summary:
 - 3.6 JSON → 4.2 二进制现已与官方 Spine 4.2.22 读取器逐字节兼容（NPE 根因消除）
 - 同类隐患（3.4~3.8 hash null、皮肤索引错位、贝塞尔计数低报）一并修复
 - 4.0+ 精确版本号需求落地：版本网格 + 可编辑版本串双保险
+
+---
+Task ID: 8
+Agent: main
+Task: 仓库治理 —— GitHub 远程推送 + MIT 许可证 + CI
+
+Work Log:
+- SSH 推送通道：环境无 openssh-client，用 paramiko 实现 git-ssh.py 包装器
+  （Ed25519 密钥 + GitHub 官方主机密钥严格校验，指纹三方比对一致）
+- 推送 https://github.com/firekula/spine-convert（main）；期间平台快照机制两次
+  重建本地 .git 并夹带 471 个垃圾文件（jar/解包源码/调试脚本），均已重置清洗并强推覆盖
+- 本地会话脚本（debug-*/ssh 工具）移入 .git/info/exclude 防再次入库
+- 新增 LICENSE（MIT，© 2026 firekula）；官方 Spine 资产明确排除在 MIT 之外
+- 新增 .github/workflows/ci.yml：三套回归（319 项）→ ESLint → next build → tsc；
+  关键点：next-env.d.ts 不入库但被 tsconfig 引用，故 tsc 必须排在 build 之后；
+  prisma generate 提供 db.ts 类型；DATABASE_URL 用占位串
+- package.json 声明 license: MIT，版本 1.1.1；README 加 CI/License 徽章与版权段更新；
+  CHANGELOG 记录 [1.1.1]
+
+Stage Summary:
+- 远程仓库：干净两提交历史 + LICENSE + CI，push 即触发首次 Actions 验证

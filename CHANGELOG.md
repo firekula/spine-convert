@@ -4,6 +4,24 @@
 
 格式约定参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.1.1] - 2026-10-29
+
+### 新增
+
+- **MIT 许可证**：代码以 MIT 开源（© 2026 firekula，见 LICENSE）；官方 Spine 示例资产仍归 Esoteric Software 所有，不在 MIT 授权范围内
+- **GitHub Actions CI**（`.github/workflows/ci.yml`）：push / PR 触发，依次执行三套回归测试（319 项）→ ESLint → next build 生产构建 → tsc 类型检查；Bun 运行时，15 分钟超时保护
+- README 顶部新增 CI 状态徽章与 License 徽章
+
+### 修复
+
+- `scripts/test-convert.ts` 7 处类型错误（`Object.values/entries` 对 any 入参的重载推导为 unknown，补显式断言），CI 的 tsc 检查得以通过
+
+### 变更
+
+- `package.json`：声明 `license: MIT` 字段，版本号 1.1.0 → 1.1.1
+- ESLint 忽略 `research/**`（官方源码与导出文件参考副本，非本项目代码）
+- tsconfig `exclude` 增加 `research` / `examples` / `skills`（官方参考副本与脚手架示例不参与类型检查；`next-env.d.ts` 不入库，CI 中 tsc 排在 next build 之后执行）
+
 ## [1.1.0] - 2026-10-28
 
 ### 修复

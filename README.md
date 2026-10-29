@@ -119,7 +119,7 @@ docker run -d -p 3000:3000 -v spine-convert-data:/app/data spine-convert
 
 **说明**
 
-- 容器以非 root（uid 1001）运行；绑定宿主机目录时需先 `mkdir -p ./data && chown -R 1001:1001 ./data`
+- 容器以非 root（bun 用户，uid 1000）运行；绑定宿主机目录时需先 `mkdir -p ./data && chown -R 1000:1000 ./data`
 - 转换全部在浏览器本地完成，容器无对外网络请求，历史记录数据库仅作脚手架预留
 - 镜像标签策略：`latest`（main 最新）、`main-<sha>`（指定提交）、`1.2.0` / `1.2`（Release 版本）
 

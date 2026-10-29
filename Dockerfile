@@ -34,20 +34,18 @@ ENV NODE_ENV=production \
     PORT=3000 \
     DATABASE_URL="file:/app/data/prod.db"
 
-# 非 root 用户运行
-RUN addgroup --system --gid 1001 nodejs \
- && adduser --system --uid 1001 --ingroup nodejs nextjs \
- && mkdir -p /app/data \
- && chown -R nextjs:nodejs /app/data
+# 使用镜像自带的 bun 用户（uid/gid 1000，slim 变体无 adduser/addgroup 脚本）
+RUN mkdir -p /app/data \
+ && chown -R bun:bun /app/data
 
 # standalone 产物（server.js + 精简 node_modules + .next/static + public，约 76MB）
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=bun:bun /app/.next/standalone ./
 
 # 容器辅助脚本 + 建库 SQL
-COPY --chown=nextjs:nodejs docker/ ./docker/
-COPY --from=builder --chown=nextjs:nodejs /app/docker-init.sql ./docker/init.sql
+COPY --chown=bun:bun docker/ ./docker/
+COPY --from=builder --chown=bun:bun /app/docker-init.sql ./docker/init.sql
 
-USER nextjs
+USER bun
 VOLUME /app/data
 EXPOSE 3000
 

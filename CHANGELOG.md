@@ -9,7 +9,7 @@
 ### 新增
 
 - **Docker 容器化部署**：
-  - `Dockerfile` 多阶段构建（oven/bun 基础镜像）：构建阶段安装依赖 + 生成 Prisma Client + 产出 standalone 产物；运行阶段仅携带约 80MB 运行时内容，非 root（uid 1001）运行，内置健康检查
+  - `Dockerfile` 多阶段构建（oven/bun 基础镜像）：构建阶段安装依赖 + 生成 Prisma Client + 产出 standalone 产物；运行阶段仅携带约 80MB 运行时内容，非 root（镜像自带 bun 用户，uid 1000）运行，内置健康检查
   - 首次启动自动建库：构建期 `prisma migrate diff` 生成建表 SQL，运行时由 bun 内置 SQLite 执行，镜像无需携带 Prisma CLI 与查询引擎；二次启动自动跳过
   - `.dockerignore` 排除本地数据、密钥与运行无关目录；`docker-compose.yml` 一键部署示例
 - **GitHub Actions Docker 流水线**（`.github/workflows/docker.yml`）：

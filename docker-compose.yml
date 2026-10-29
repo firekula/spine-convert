@@ -15,8 +15,8 @@ services:
       DATABASE_URL: file:/app/data/prod.db
     volumes:
       # 命名卷持久化 SQLite 数据
-      # 如需绑定宿主机目录，先确保目录对 uid 1001 可写：
-      #   mkdir -p ./data && sudo chown -R 1001:1001 ./data
+      # 如需绑定宿主机目录，先确保目录对 uid 1000 可写：
+      #   mkdir -p ./data && sudo chown -R 1000:1000 ./data
       # 然后改用：- ./data:/app/data
       - spine-convert-data:/app/data
 

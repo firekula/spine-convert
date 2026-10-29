@@ -22,7 +22,7 @@ if [ -n "$DB_PATH" ]; then
     if [ ! -s "$DB_PATH" ]; then
         echo "[entrypoint] 数据库不存在，执行首次建库: $DB_PATH"
         mkdir -p "$(dirname "$DB_PATH")" || {
-            echo "[entrypoint] 无法创建数据目录 $(dirname "$DB_PATH")，请检查卷挂载权限（需要 uid 1001 可写）" >&2
+            echo "[entrypoint] 无法创建数据目录 $(dirname "$DB_PATH")，请检查卷挂载权限（需要 uid 1000 可写）" >&2
             exit 1
         }
         bun ./docker/init-db.ts

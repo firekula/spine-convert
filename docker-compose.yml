@@ -1,0 +1,24 @@
+# Spine 版本转换工具 —— Docker Compose 部署
+#
+# 用法：
+#   docker compose up -d          # 从 GHCR 拉取镜像启动
+#   docker compose up -d --build  # 取消下方 build 注释后，使用本地 Dockerfile 自建
+services:
+  spine-convert:
+    image: ghcr.io/firekula/spine-convert:latest
+    # build: .
+    container_name: spine-convert
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: file:/app/data/prod.db
+    volumes:
+      # 命名卷持久化 SQLite 数据
+      # 如需绑定宿主机目录，先确保目录对 uid 1001 可写：
+      #   mkdir -p ./data && sudo chown -R 1001:1001 ./data
+      # 然后改用：- ./data:/app/data
+      - spine-convert-data:/app/data
+
+volumes:
+  spine-convert-data:

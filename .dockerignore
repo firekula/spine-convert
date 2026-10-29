@@ -1,0 +1,49 @@
+# 版本控制与 CI（镜像内不需要）
+.git
+.github
+.gitignore
+.gitattributes
+
+# 依赖与构建产物（容器内重新安装 / 构建）
+node_modules
+.next
+out
+build
+*.tsbuildinfo
+next-env.d.ts
+
+# 本地数据与密钥（绝不进入构建上下文与镜像）
+db
+data
+*.db
+*.db-journal
+.env
+.env.*
+!.env.example
+.ssh
+*.pem
+*.key
+id_ed25519*
+
+# 与应用运行无关的项目目录
+research
+skills
+examples
+mini-services
+scripts
+tests
+download
+tool-results
+upload
+agent-ctx
+.zscripts
+.z-ai-config
+.claude
+.docker-sim-tmp
+
+# 文档与杂项（README / LICENSE 随镜像分发，其余排除）
+CHANGELOG.md
+worklog.md
+*.log
+.DS_Store
+Caddyfile

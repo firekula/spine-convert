@@ -1,0 +1,154 @@
+name: Docker
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+permissions:
+  contents: write # 发布 GitHub Release
+  packages: write # 推送镜像到 GHCR
+
+jobs:
+  build:
+    name: 构建镜像（${{ matrix.platform }}）
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [linux/amd64, linux/arm64]
+    runs-on: ${{ matrix.platform == 'linux/amd64' && 'ubuntu-latest' || 'ubuntu-24.04-arm' }}
+    timeout-minutes: 20
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v5
+
+      - name: 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 登录 GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker meta（OCI labels）
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: 构建并按摘要推送
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # 多架构分布式构建：各平台先按 digest 推送，汇总任务再统一打标签
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=build-${{ matrix.platform }}
+          cache-to: type=gha,scope=build-${{ matrix.platform }},mode=max
+          provenance: false
+
+      - name: 导出镜像摘要
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: 上传镜像摘要
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  release:
+    name: 汇总多架构标签并发布
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: 计算版本号（仅标签推送）
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: 下载镜像摘要
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 登录 GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 组装多架构 manifest 并推送
+        working-directory: /tmp/digests
+        run: |
+          IMAGE="$REGISTRY/$IMAGE_NAME"
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+            MINOR="${VERSION%.*}"
+            TAGS=(latest "$VERSION" "$MINOR")
+          else
+            TAGS=(latest "main-${GITHUB_SHA::7}")
+          fi
+          ARGS=()
+          for t in "${TAGS[@]}"; do ARGS+=(--tag "$IMAGE:$t"); done
+          echo "推送镜像标签: ${TAGS[*]}"
+          docker buildx imagetools create "${ARGS[@]}" $(printf "$IMAGE@sha256:%s " *)
+
+      - name: 导出离线镜像 tar（amd64 / arm64）
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          IMAGE="$REGISTRY/$IMAGE_NAME"
+          VERSION="${GITHUB_REF_NAME#v}"
+          for ARCH in amd64 arm64; do
+            echo "导出 $ARCH 离线镜像..."
+            docker pull --platform "linux/$ARCH" "$IMAGE:$VERSION"
+            docker save "$IMAGE:$VERSION" | gzip > "spine-convert_${VERSION}_docker_${ARCH}.tar.gz"
+          done
+          ls -lh spine-convert_*.tar.gz
+
+      - name: 发布 GitHub Release（附带离线镜像）
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: spine-convert_*_docker_*.tar.gz
+          generate_release_notes: true
+          body: |
+            ## Docker 快速开始
+
+            ```bash
+            docker run -d --name spine-convert \
+              -p 3000:3000 \
+              -v spine-convert-data:/app/data \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.ver.outputs.version }}
+            ```
+
+            离线环境可直接导入下方附件（导入后镜像标签为 `${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.ver.outputs.version }}`）：
+
+            ```bash
+            docker load -i spine-convert_${{ steps.ver.outputs.version }}_docker_amd64.tar.gz
+            docker run -d -p 3000:3000 -v spine-convert-data:/app/data ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.ver.outputs.version }}
+            ```

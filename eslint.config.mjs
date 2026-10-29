@@ -45,7 +45,8 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
   },
 }, {
   // research/** 为官方运行时源码与导出文件的参考副本（非本项目代码），不参与 lint
-  ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", "examples/**", "skills", "research/**"]
+  // docker/** 为容器辅助脚本（由 bun 直接执行，见 Dockerfile），不参与 lint
+  ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", "examples/**", "skills", "research/**", "docker/**"]
 }];
 
 export default eslintConfig;
